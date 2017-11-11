@@ -21,12 +21,12 @@ def plot_means(train_data, train_labels):
         means.append( np.reshape(column, (8,8)) )
 
     # Plot all means on same axis
-    # all_concat = np.concatenate(means, 1)
-    # plt.imshow(all_concat, cmap='gray')
-    for i in range(len(means)):
-        plt.subplot(1,10,i+1)
-        plt.imshow(means[i], cmap='gray')
-    plt.suptitle('Mean for digit 0-9')
+    all_concat = np.concatenate(means, 1)
+    plt.imshow(all_concat, cmap='gray')
+    # for i in range(len(means)):
+    #     plt.subplot(1,10,i+1)
+    #     plt.imshow(means[i], cmap='gray')
+    # plt.suptitle('Mean for digit 0-9')
     plt.show()
 
 if __name__ == '__main__':
