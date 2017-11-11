@@ -71,7 +71,7 @@ def generative_likelihood(bin_digits, eta):
         for i in range(10):
             like = 1
             for j in range(64):
-                like *= (eta[i][j] ** digit[j]) * ((1-eta[i][j]) ** digit[j])
+                like *= (eta[i][j] ** digit[j]) * ((1-eta[i][j]) ** (1-digit[j]))
             generative_likelihood.append(np.log(like))
         result.append(generative_likelihood)
 
@@ -142,7 +142,7 @@ def main():
     avg_cond_like_test = avg_conditional_likelihood(test_data, test_labels, eta)
     accuracy_training = sum(1 for i in range(len(train_data)) if result_train_data[i] == train_labels[i]) / len(train_data)
     accuracy_testing = sum(1 for i in range(len(test_data)) if result_test_data[i] == test_labels[i]) / len(test_data)
-    
+
     print("Average conditional likelihood on")
     print("training set: %s" %avg_cond_like_train)
     print("testing set: %s" %avg_cond_like_test)
