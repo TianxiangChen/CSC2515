@@ -38,12 +38,16 @@ def compute_sigma_mles(train_data, train_labels):
         data_class_i = np.squeeze([train_data[j,:] for j in range(len(train_data)) if train_labels[j] == i])
         data_size = len(data_class_i)
 
-        for j in range(64):
-            for k in range(64):
-                left = np.transpose( [(data_class_i[m,j] - means[i,j]) for m in range(len(data_class_i))] )
-                right = [(data_class_i[m,k] - means[i,k]) for m in range(len(data_class_i))]
+        left = np.transpose(data_class_i - means[i,:])
+        right = data_class_i - means[i,:]
+        covariances[i] = np.dot(left, right) / data_size
 
-                covariances[i,j,k] = np.dot(left, right) / data_size
+        # for j in range(64):
+        #     for k in range(64):
+        #         left = np.transpose( [(data_class_i[m,j] - means[i,j]) for m in range(len(data_class_i))] )
+        #         right = [(data_class_i[m,k] - means[i,k]) for m in range(len(data_class_i))]
+        #
+        #         covariances[i,j,k] = np.dot(left, right) / data_size
 
     # A self-check function for covariances calculation
     # cov_verify = np.zeros((10, 64, 64))
