@@ -48,11 +48,11 @@ class KNearestNeighbor(object):
 
         You should return the digit label provided by the algorithm
         '''
-        # flag = 0
+
         while(1):
             dist = self.l2_distance(test_point)
             index = dist.argsort()[:k]
-            # print(index)
+
             vote = [0 for x in range(10)]
             for i in range(k):
                 major_class = int(np.squeeze(self.train_labels[index[i]]))
@@ -60,15 +60,11 @@ class KNearestNeighbor(object):
             m = max(vote)
             index_of_max = [i for i, j in enumerate(vote) if j == m]
 
-            # result_index, value = max(enumerate(vote), key=operator.itemgetter(1))
             if len(index_of_max) == 1:
                 digit = index_of_max[0]
-                # if(flag):
-                #     print("k: %d" %k)
                 break
             else:
                 k -=1
-                # flag = 1
 
         return digit
 
@@ -87,7 +83,7 @@ def cross_validation(knn, k_range=np.arange(1,16)): # change to 16 since we want
         # Evaluate k-NN
         # ...
         for i in range(k_cross):
-            print('The program is testing for k = %d. It finishes %d/%d' %(k, i+1, k_cross))
+            # print('The program is testing for k = %d. It finishes %d/%d' %(k, i+1, k_cross))
             validation_indices = random_indices[i*subset_size: (i+1)*subset_size]
             # Remove validation set from the whole set to form training set
             train_indices = [x for x in random_indices if x not in validation_indices]
@@ -131,7 +127,7 @@ def main():
     accuracy_test = classification_accuracy(knn, k, test_data, test_labels)
     print("accuracy for k=%d\ntraining set: %.3f\ntesting set: %.3f" %(k, accuracy_train, accuracy_test))
 
-    print("Perform the %d-cross validation: " %k_cross)
+    print("Perform the %d-cross validation for finding optimal k: " %k_cross)
     accuracy = cross_validation(knn)
     for i in range(len(accuracy)):
         print("%dNN: %.3f%%" %(i+1, accuracy[i]*100))
@@ -146,12 +142,12 @@ def main():
             print(index_of_max[i]+1, end ='')
         else:
             print(", %d" %index_of_max[i]+1, end='')
-    print("\n")
-
+    print("")
 
     for i in range(len(index_of_max)):
-        accuracy = classification_accuracy(knn, index_of_max[i], test_data, test_labels)
-        print("Using the testing set, the accuracy for optimal kNN k=%d is: %.3f%%" %(index_of_max[i]+1, accuracy*100))
+        accuracy_train = classification_accuracy(knn, index_of_max[i]+1, train_data, train_labels)
+        accuracy_test = classification_accuracy(knn, index_of_max[i]+1, test_data, test_labels)
+        print("Accuracy for optimal kNN k=%d\ntraining set: %.3f\ntesting set: %.3f" %(index_of_max[i]+1, accuracy_train, accuracy_test))
 
 
 if __name__ == '__main__':
