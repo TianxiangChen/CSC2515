@@ -9,6 +9,12 @@ import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn import linear_model
+from sklearn.neighbors import RadiusNeighborsClassifier
+from sklearn.svm import SVC
 
 def load_data():
     # import and filter data
@@ -56,5 +62,29 @@ def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
 if __name__ == '__main__':
     train_data, test_data = load_data()
     train_bow, test_bow, feature_names = bow_features(train_data, test_data)
+    # train_bow, test_bow, feature_names = tf_idf_features(train_data, test_data)
 
     bnb_model = bnb_baseline(train_bow, train_data.target, test_bow, test_data.target)
+
+
+
+    # neigh = KNeighborsClassifier(n_neighbors=5)
+    # neigh.fit(train_bow, train_data.target)
+    # print("K-NN (k=5) accuracy for training set: %s" %(neigh.score(train_bow,train_data.target)))
+    # print("K-NN (k=5) accuracy for testing set: %s" %(neigh.score(test_bow,test_data.target)))
+
+    # r_neigh = RadiusNeighborsClassifier(radius=3.0)
+    # r_neigh.fit(train_bow, train_data.target)
+    # print("R-NN (r=1) accuracy for training set: %s" %(r_neigh.score(train_bow,train_data.target)))
+    # print("R-NN (r=1) accuracy for testing set: %s" %(r_neigh.score(test_bow,test_data.target)))
+
+    # d_tree = DecisionTreeClassifier()
+    # d_tree.fit(train_bow, train_data.target)
+    # print("Decision Tree accuracy for training set: %s" %(d_tree.score(train_bow,train_data.target)))
+    # print("Decision Tree accuracy for testing set: %s" %(d_tree.score(test_bow,test_data.target)))
+
+    # logreg = linear_model.LogisticRegression(C=1e5)
+    # we create an instance of Neighbours Classifier and fit the data.
+    # logreg.fit(train_bow, train_data.target)
+    # print("Logistic Regression accuracy for training set: %s" %(logreg.score(train_bow,train_data.target)))
+    # print("Logistic Regression accuracy for testing set: %s" %(logreg.score(test_bow,test_data.target)))
