@@ -3,6 +3,7 @@ import universe  # register the universe environments
 
 env = gym.make('flashgames.DuskDrive-v0')
 env.configure(remotes=1)  # automatically creates a local docker container
+# env.configure(remotes="vnc://localhost:5900+15900")
 observation_n = env.reset()
 
 while True:
