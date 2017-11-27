@@ -14,6 +14,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn import linear_model
 from sklearn.neighbors import RadiusNeighborsClassifier
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from time import time
+from scipy.stats import randint as sp_randint
 from sklearn.svm import SVC
 
 def load_data():
@@ -61,28 +65,64 @@ def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
 
 if __name__ == '__main__':
     train_data, test_data = load_data()
-    train_bow, test_bow, feature_names = bow_features(train_data, test_data)
-    # train_bow, test_bow, feature_names = tf_idf_features(train_data, test_data)
+    # train_bow, test_bow, feature_names = bow_features(train_data, test_data)
+    train_bow, test_bow, feature_names = tf_idf_features(train_data, test_data)
 
     bnb_model = bnb_baseline(train_bow, train_data.target, test_bow, test_data.target)
 
 
-
+    #----------------------------- K-NN ----------------------------------------
     # neigh = KNeighborsClassifier(n_neighbors=5)
     # neigh.fit(train_bow, train_data.target)
     # print("K-NN (k=5) accuracy for training set: %s" %(neigh.score(train_bow,train_data.target)))
     # print("K-NN (k=5) accuracy for testing set: %s" %(neigh.score(test_bow,test_data.target)))
 
+
+    #----------------------------- R-NN ----------------------------------------
     # r_neigh = RadiusNeighborsClassifier(radius=3.0)
     # r_neigh.fit(train_bow, train_data.target)
     # print("R-NN (r=1) accuracy for training set: %s" %(r_neigh.score(train_bow,train_data.target)))
     # print("R-NN (r=1) accuracy for testing set: %s" %(r_neigh.score(test_bow,test_data.target)))
 
+
+    #----------------------------- RandomCV ------------------------------------
+    # build a classifier
+    # clf = RandomForestClassifier(n_estimators=20)
+    #
+    # # specify parameters and distributions to sample from
+    # param_dist = {"max_depth": [3, None],
+    #           "max_features": sp_randint(1, 11),
+    #           "min_samples_split": sp_randint(2, 11),
+    #           "min_samples_leaf": sp_randint(1, 11),
+    #           "bootstrap": [True, False],
+    #           "criterion": ["gini", "entropy"]}
+    # # run randomized search
+    # n_iter_search = 20
+    # random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
+    #                                n_iter=n_iter_search)
+    #
+    # start = time()
+    # random_search.fit(train_bow, train_data.target)
+    # print("RandomizedSearchCV took %.2f seconds for %d candidates"
+    #     " parameter settings." % ((time() - start), n_iter_search))
+    # # report(random_search.cv_results_)
+    # print("RandomCV accuracy for training set: %s" %(random_search.score(train_bow,train_data.target)))
+    # print("RandomCV accuracy for testing set: %s" %(random_search.score(test_bow,test_data.target)))
+
+    #----------------------------- SVM -----------------------------------------
+    svm_clf = SVC(kernel='linear', decision_function_shape='ovo')
+    svm_clf.fit(train_bow, train_data.target)
+    print("SVM accuracy for training set: %s" %(svm_clf.score(train_bow,train_data.target)))
+    print("SVM accuracy for testing set: %s" %(svm_clf.score(test_bow,test_data.target)))
+
+
+    #----------------------------- Decision Tree -------------------------------
     # d_tree = DecisionTreeClassifier()
     # d_tree.fit(train_bow, train_data.target)
     # print("Decision Tree accuracy for training set: %s" %(d_tree.score(train_bow,train_data.target)))
     # print("Decision Tree accuracy for testing set: %s" %(d_tree.score(test_bow,test_data.target)))
 
+    #----------------------------- Logistic Regression -------------------------
     # logreg = linear_model.LogisticRegression(C=1e5)
     # we create an instance of Neighbours Classifier and fit the data.
     # logreg.fit(train_bow, train_data.target)
