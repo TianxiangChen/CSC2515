@@ -12,13 +12,12 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn import linear_model
 from sklearn.neighbors import RadiusNeighborsClassifier
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
-from time import time
-from scipy.stats import randint as sp_randint
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
+from sklearn.neural_network import MLPClassifier
+import matplotlib.pyplot as plt
+from sklearn.naive_bayes import MultinomialNB
 
 def load_data():
     # import and filter data
@@ -63,68 +62,97 @@ def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
 
     return model
 
+def knn_model(train_input, train_target, test_input, test_target):
+    neigh = KNeighborsClassifier(n_neighbors=5)
+    neigh.fit(train_input, train_target)
+    print("K-NN (k=5) accuracy for training set: %s" %(neigh.score(train_input, train_target)))
+    print("K-NN (k=5) accuracy for testing set: %s" %(neigh.score(test_input,test_target)))
+
+def rnn_model(train_input, train_target, test_input, test_target):
+    r_neigh = RadiusNeighborsClassifier(radius=3.0)
+    r_neigh.fit(train_input, train_target)
+    print("R-NN (r=1) accuracy for training set: %s" %(r_neigh.score(train_input,train_target)))
+    print("R-NN (r=1) accuracy for testing set: %s" %(r_neigh.score(test_input,test_target)))
+
+def svm_linear_model(train_input, train_target, test_input, test_target):
+    # For this data set, we have more than 100,000 input feature but only ~10,000 inputs
+    # To avoid overfitting, we cannot use complicated kernel but just linear one.
+    svm_clf = LinearSVC()
+    svm_clf.fit(train_input, train_target)
+    print("SVM accuracy for training set: %s" %(svm_clf.score(train_input,train_target)))
+    print("SVM accuracy for testing set: %s" %(svm_clf.score(test_input,test_target)))
+
+def decision_tree_model(train_input, train_target, test_input, test_target):
+    d_tree = DecisionTreeClassifier()
+    d_tree.fit(train_input, train_target)
+    print("Decision Tree accuracy for training set: %s" %(d_tree.score(train_input,train_target)))
+    print("Decision Tree accuracy for testing set: %s" %(d_tree.score(test_input,test_target)))
+
+def logistic_regression_model(train_input, train_target, test_input, test_target):
+    logreg = LogisticRegression(C=1e7)
+    # we create an instance of Neighbours Classifier and fit the data.
+    logreg.fit(train_bow, train_data.target)
+    print("Logistic Regression accuracy for training set: %s" %(logreg.score(train_bow,train_data.target)))
+    print("Logistic Regression accuracy for testing set: %s" %(logreg.score(test_bow,test_data.target)))
+
+def neural_network_model(train_input, train_target, test_input, test_target):
+    clf = MLPClassifier(hidden_layer_sizes=(50,))
+    clf.fit(train_input, train_target)
+    print("Neural network accuracy for training set: %s" %(clf.score(train_input,train_target)))
+    print("Neural network accuracy for testing set: %s" %(clf.score(test_input,test_target)))
+
+def multinomialNB_model(train_input, train_target, test_input, test_target):
+    clf = MultinomialNB(alpha=0.01)
+    clf.fit(train_input, train_target)
+    print("MultinomialNB accuracy for training set: %s" %(clf.score(train_input,train_target)))
+    print("MultinomialNB accuracy for testing set: %s" %(clf.score(test_input,test_target)))
+
+def compute_confusion_matrix(test_prediction, test_target):
+    matrix = np.zeros((20, 20))
+
+    for i in range(len(test_prediction)):
+        matrix[test_prediction[i]][test_target[i]] += 1
+
+    return matrix
+
+def find_confusion_class(matrix):
+    # this function finds the index of largest element in matrix which is not
+    # in the diagonal line
+    max_temp = 0
+    matrix = matrix + matrix.transpose()
+    for i in range(20):
+        for j in range(20):
+            if i != j:
+                if matrix[i][j] > max_temp:
+                    max_temp = matrix[i][j]
+                    index_i = i
+                    index_j = j
+    # print("the largest Cij not in the diagonal is C[%d][%d]" %(index_i, index_j))
+    return index_i, index_j
+
 if __name__ == '__main__':
     train_data, test_data = load_data()
     # train_bow, test_bow, feature_names = bow_features(train_data, test_data)
     train_bow, test_bow, feature_names = tf_idf_features(train_data, test_data)
-
     bnb_model = bnb_baseline(train_bow, train_data.target, test_bow, test_data.target)
 
 
-    #----------------------------- K-NN ----------------------------------------
-    # neigh = KNeighborsClassifier(n_neighbors=5)
-    # neigh.fit(train_bow, train_data.target)
-    # print("K-NN (k=5) accuracy for training set: %s" %(neigh.score(train_bow,train_data.target)))
-    # print("K-NN (k=5) accuracy for testing set: %s" %(neigh.score(test_bow,test_data.target)))
 
 
-    #----------------------------- R-NN ----------------------------------------
-    # r_neigh = RadiusNeighborsClassifier(radius=3.0)
-    # r_neigh.fit(train_bow, train_data.target)
-    # print("R-NN (r=1) accuracy for training set: %s" %(r_neigh.score(train_bow,train_data.target)))
-    # print("R-NN (r=1) accuracy for testing set: %s" %(r_neigh.score(test_bow,test_data.target)))
+    # knn_model(train_bow, train_data.target, test_bow, test_data.target)
+    # rnn_model(train_bow, train_data.target, test_bow, test_data.target)
+    # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target)
+    # decision_tree_model(train_bow, train_data.target, test_bow, test_data.target)
+    # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target)
+    multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target)
+    # neural_network_model(train_bow, train_data.target, test_bow, test_data.target)
 
 
-    #----------------------------- RandomCV ------------------------------------
-    # build a classifier
-    # clf = RandomForestClassifier(n_estimators=20)
-    #
-    # # specify parameters and distributions to sample from
-    # param_dist = {"max_depth": [3, None],
-    #           "max_features": sp_randint(1, 11),
-    #           "min_samples_split": sp_randint(2, 11),
-    #           "min_samples_leaf": sp_randint(1, 11),
-    #           "bootstrap": [True, False],
-    #           "criterion": ["gini", "entropy"]}
-    # # run randomized search
-    # n_iter_search = 20
-    # random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
-    #                                n_iter=n_iter_search)
-    #
-    # start = time()
-    # random_search.fit(train_bow, train_data.target)
-    # print("RandomizedSearchCV took %.2f seconds for %d candidates"
-    #     " parameter settings." % ((time() - start), n_iter_search))
-    # # report(random_search.cv_results_)
-    # print("RandomCV accuracy for training set: %s" %(random_search.score(train_bow,train_data.target)))
-    # print("RandomCV accuracy for testing set: %s" %(random_search.score(test_bow,test_data.target)))
-
-    #----------------------------- SVM -----------------------------------------
-    svm_clf = SVC(kernel='linear', decision_function_shape='ovo')
-    svm_clf.fit(train_bow, train_data.target)
-    print("SVM accuracy for training set: %s" %(svm_clf.score(train_bow,train_data.target)))
-    print("SVM accuracy for testing set: %s" %(svm_clf.score(test_bow,test_data.target)))
-
-
-    #----------------------------- Decision Tree -------------------------------
-    # d_tree = DecisionTreeClassifier()
-    # d_tree.fit(train_bow, train_data.target)
-    # print("Decision Tree accuracy for training set: %s" %(d_tree.score(train_bow,train_data.target)))
-    # print("Decision Tree accuracy for testing set: %s" %(d_tree.score(test_bow,test_data.target)))
-
-    #----------------------------- Logistic Regression -------------------------
-    # logreg = linear_model.LogisticRegression(C=1e5)
-    # we create an instance of Neighbours Classifier and fit the data.
+    # logreg = LogisticRegression(C=1e7)
     # logreg.fit(train_bow, train_data.target)
-    # print("Logistic Regression accuracy for training set: %s" %(logreg.score(train_bow,train_data.target)))
-    # print("Logistic Regression accuracy for testing set: %s" %(logreg.score(test_bow,test_data.target)))
+    # matrix = compute_confusion_matrix(logreg.predict(test_bow),test_data.target)
+    # plt.imshow(matrix, cmap='gray_r')
+    # plt.colorbar()
+    # plt.show()
+    # i,j = find_confusion_class(matrix)
+    # print ("the two most confusion class are :\nclass %s: %s\nclass %s: %s" %(i, train_data.target_names[i], j, train_data.target_names[j]))
