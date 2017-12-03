@@ -96,7 +96,7 @@ def logistic_regression_model(train_input, train_target, test_input, test_target
     print("Logistic Regression accuracy for testing set: %s" %(logreg.score(test_bow,test_data.target)))
 
 def neural_network_model(train_input, train_target, test_input, test_target):
-    clf = MLPClassifier(hidden_layer_sizes=(50,))
+    clf = MLPClassifier(hidden_layer_sizes=(100,))
     clf.fit(train_input, train_target)
     print("Neural network accuracy for training set: %s" %(clf.score(train_input,train_target)))
     print("Neural network accuracy for testing set: %s" %(clf.score(test_input,test_target)))
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target)
     # decision_tree_model(train_bow, train_data.target, test_bow, test_data.target)
     # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target)
-    multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target)
-    # neural_network_model(train_bow, train_data.target, test_bow, test_data.target)
+    # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target)
+    neural_network_model(train_bow, train_data.target, test_bow, test_data.target)
 
 
     # logreg = LogisticRegression(C=1e7)
