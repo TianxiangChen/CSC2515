@@ -132,12 +132,12 @@ def cross_validation_svm(train_input, train_target):
     return accuracy,C_set
 
 def cross_validation_neural_network(train_input, train_target):
-    k_cross = 3 # for neural network, we cannot afford a a big k..
+    k_cross = 5 # for neural network, we cannot afford a a big k..
     size_data = len(train_target)
     subset_size = int(size_data / k_cross)
 
     # Create diff hyperparameter num of layer
-    layer_set = [50,100]
+    layer_set = [10]
     # Generate shuffled indices into dataset
     random_indices = np.random.permutation(range(size_data))
     accuracy = np.zeros((len(layer_set), k_cross))
@@ -234,10 +234,10 @@ if __name__ == '__main__':
 
     # knn_model(train_bow, train_data.target, test_bow, test_data.target)
     # rnn_model(train_bow, train_data.target, test_bow, test_data.target)
-    # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target)
+    # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target, 1)
     # decision_tree_model(train_bow, train_data.target, test_bow, test_data.target)
     # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target,1)
-    # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target)
+    # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target, 1)
     # neural_network_model(train_bow, train_data.target, test_bow, test_data.target,100)
 
 
@@ -249,18 +249,18 @@ if __name__ == '__main__':
     # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target, alpha_set[index])
 
     # Method : LogisticRegression
-    # accuracy, C_set = cross_validation_logistic_regression(train_bow, train_data.target)
-    # accuracy = accuracy.tolist()
-    # index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
-    # print("The best C from cross validation for Logistic Regression is: %d" %(C_set[index]))
-    # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
+    accuracy, C_set = cross_validation_logistic_regression(train_bow, train_data.target)
+    accuracy = accuracy.tolist()
+    index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    print("The best C from cross validation for Logistic Regression is: %d" %(C_set[index]))
+    logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
 
     # Method : LinearSVC
-    # accuracy, C_set = cross_validation_svm(train_bow, train_data.target)
-    # accuracy = accuracy.tolist()
-    # index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
-    # print("The best C from cross validation for SVM is: %d" %(C_set[index]))
-    # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
+    accuracy, C_set = cross_validation_svm(train_bow, train_data.target)
+    accuracy = accuracy.tolist()
+    index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    print("The best C from cross validation for SVM is: %d" %(C_set[index]))
+    svm_linear_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
 
     # Method : Nueral Network
     accuracy, layer_set = cross_validation_neural_network(train_bow, train_data.target)
@@ -269,10 +269,9 @@ if __name__ == '__main__':
     print("The best num of layers [50 or 100] from cross validation for neural network is: %d" %(layer_set[index]))
     neural_network_model(train_bow, train_data.target, test_bow, test_data.target, layer_set[index])
 
-    # clf = LogisticRegression(C=1e7)
-    clf.fit(train_bow, train_data.target)
+
     clf = MLPClassifier(hidden_layer_sizes=(layer_set[index],))
-    clf.fit(train_bow, train_target)
+    clf.fit(train_bow, train_data.target)
     matrix = compute_confusion_matrix(clf.predict(test_bow),test_data.target)
     plt.imshow(matrix, cmap='gray_r')
     plt.colorbar()
