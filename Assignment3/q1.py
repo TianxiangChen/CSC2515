@@ -18,6 +18,9 @@ from sklearn.svm import LinearSVC
 from sklearn.neural_network import MLPClassifier
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import MultinomialNB
+import operator
+# Define as 10-cross validation
+k_cross = 10
 
 def load_data():
     # import and filter data
@@ -62,6 +65,95 @@ def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
 
     return model
 
+def cross_validation_multinomialNB(train_input, train_target):
+    size_data = len(train_target)
+    subset_size = int(size_data / k_cross)
+
+    # Create diff hyperparameter alpha
+    alpha_set = np.arange(1, 10, 1)
+    # Generate shuffled indices into dataset
+    random_indices = np.random.permutation(range(size_data))
+    accuracy = np.zeros((len(alpha_set), k_cross))
+
+    for k in range(len(alpha_set)):
+        for i in range(k_cross):
+            validation_indices = random_indices[i*subset_size: (i+1)*subset_size]
+            # Remove validation set from the whole set to form training set
+            train_indices = [x for x in random_indices if x not in validation_indices]
+            clf = MultinomialNB(alpha=alpha_set[k])
+            clf.fit(train_input, train_target)
+            accuracy[k,i] = clf.score(train_input[validation_indices],
+                train_target[validation_indices])
+    accuracy = np.mean(accuracy,axis=1)
+    return accuracy,alpha_set
+
+def cross_validation_logistic_regression(train_input, train_target):
+    size_data = len(train_target)
+    subset_size = int(size_data / k_cross)
+
+    # Create diff hyperparameter C
+    C_set = np.arange(1, 10, 1)
+    # Generate shuffled indices into dataset
+    random_indices = np.random.permutation(range(size_data))
+    accuracy = np.zeros((len(C_set), k_cross))
+
+    for k in range(len(C_set)):
+        for i in range(k_cross):
+            validation_indices = random_indices[i*subset_size: (i+1)*subset_size]
+            # Remove validation set from the whole set to form training set
+            train_indices = [x for x in random_indices if x not in validation_indices]
+            clf = LogisticRegression(C=C_set[k])
+            clf.fit(train_input[train_indices], train_target[train_indices])
+            accuracy[k,i] = clf.score(train_input[validation_indices],
+                train_target[validation_indices])
+    accuracy = np.mean(accuracy,axis=1)
+    return accuracy,C_set
+
+def cross_validation_svm(train_input, train_target):
+    size_data = len(train_target)
+    subset_size = int(size_data / k_cross)
+
+    # Create diff hyperparameter C
+    C_set = np.arange(1, 10, 1)
+    # Generate shuffled indices into dataset
+    random_indices = np.random.permutation(range(size_data))
+    accuracy = np.zeros((len(C_set), k_cross))
+
+    for k in range(len(C_set)):
+        for i in range(k_cross):
+            validation_indices = random_indices[i*subset_size: (i+1)*subset_size]
+            # Remove validation set from the whole set to form training set
+            train_indices = [x for x in random_indices if x not in validation_indices]
+            clf = LinearSVC(C=C_set[k])
+            clf.fit(train_input[train_indices], train_target[train_indices])
+            accuracy[k,i] = clf.score(train_input[validation_indices],
+                train_target[validation_indices])
+    accuracy = np.mean(accuracy,axis=1)
+    return accuracy,C_set
+
+def cross_validation_neural_network(train_input, train_target):
+    k_cross = 3 # for neural network, we cannot afford a a big k..
+    size_data = len(train_target)
+    subset_size = int(size_data / k_cross)
+
+    # Create diff hyperparameter num of layer
+    layer_set = [50,100]
+    # Generate shuffled indices into dataset
+    random_indices = np.random.permutation(range(size_data))
+    accuracy = np.zeros((len(layer_set), k_cross))
+
+    for k in range(len(layer_set)):
+        for i in range(k_cross):
+            validation_indices = random_indices[i*subset_size: (i+1)*subset_size]
+            # Remove validation set from the whole set to form training set
+            train_indices = [x for x in random_indices if x not in validation_indices]
+            clf = MLPClassifier(hidden_layer_sizes=(layer_set[k],))
+            clf.fit(train_input[train_indices], train_target[train_indices])
+            accuracy[k,i] = clf.score(train_input[validation_indices],
+                train_target[validation_indices])
+    accuracy = np.mean(accuracy,axis=1)
+    return accuracy,layer_set
+
 def knn_model(train_input, train_target, test_input, test_target):
     neigh = KNeighborsClassifier(n_neighbors=5)
     neigh.fit(train_input, train_target)
@@ -74,10 +166,10 @@ def rnn_model(train_input, train_target, test_input, test_target):
     print("R-NN (r=1) accuracy for training set: %s" %(r_neigh.score(train_input,train_target)))
     print("R-NN (r=1) accuracy for testing set: %s" %(r_neigh.score(test_input,test_target)))
 
-def svm_linear_model(train_input, train_target, test_input, test_target):
+def svm_linear_model(train_input, train_target, test_input, test_target, C_opt):
     # For this data set, we have more than 100,000 input feature but only ~10,000 inputs
     # To avoid overfitting, we cannot use complicated kernel but just linear one.
-    svm_clf = LinearSVC()
+    svm_clf = LinearSVC(C=C_opt)
     svm_clf.fit(train_input, train_target)
     print("SVM accuracy for training set: %s" %(svm_clf.score(train_input,train_target)))
     print("SVM accuracy for testing set: %s" %(svm_clf.score(test_input,test_target)))
@@ -88,21 +180,21 @@ def decision_tree_model(train_input, train_target, test_input, test_target):
     print("Decision Tree accuracy for training set: %s" %(d_tree.score(train_input,train_target)))
     print("Decision Tree accuracy for testing set: %s" %(d_tree.score(test_input,test_target)))
 
-def logistic_regression_model(train_input, train_target, test_input, test_target):
-    logreg = LogisticRegression(C=1e7)
+def logistic_regression_model(train_input, train_target, test_input, test_target, C_opt):
+    logreg = LogisticRegression(C=C_opt)
     # we create an instance of Neighbours Classifier and fit the data.
     logreg.fit(train_bow, train_data.target)
     print("Logistic Regression accuracy for training set: %s" %(logreg.score(train_bow,train_data.target)))
     print("Logistic Regression accuracy for testing set: %s" %(logreg.score(test_bow,test_data.target)))
 
-def neural_network_model(train_input, train_target, test_input, test_target):
-    clf = MLPClassifier(hidden_layer_sizes=(100,))
+def neural_network_model(train_input, train_target, test_input, test_target, layer_opt):
+    clf = MLPClassifier(hidden_layer_sizes=(layer_opt,))
     clf.fit(train_input, train_target)
     print("Neural network accuracy for training set: %s" %(clf.score(train_input,train_target)))
     print("Neural network accuracy for testing set: %s" %(clf.score(test_input,test_target)))
 
-def multinomialNB_model(train_input, train_target, test_input, test_target):
-    clf = MultinomialNB(alpha=0.01)
+def multinomialNB_model(train_input, train_target, test_input, test_target, alpha_opt):
+    clf = MultinomialNB(alpha=alpha_opt)
     clf.fit(train_input, train_target)
     print("MultinomialNB accuracy for training set: %s" %(clf.score(train_input,train_target)))
     print("MultinomialNB accuracy for testing set: %s" %(clf.score(test_input,test_target)))
@@ -138,21 +230,52 @@ if __name__ == '__main__':
 
 
 
+    # These functions are for initial test to get a rough idea which model to pick
 
     # knn_model(train_bow, train_data.target, test_bow, test_data.target)
     # rnn_model(train_bow, train_data.target, test_bow, test_data.target)
     # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target)
     # decision_tree_model(train_bow, train_data.target, test_bow, test_data.target)
-    # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target)
+    # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target,1)
     # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target)
-    neural_network_model(train_bow, train_data.target, test_bow, test_data.target)
+    # neural_network_model(train_bow, train_data.target, test_bow, test_data.target,100)
 
 
-    # logreg = LogisticRegression(C=1e7)
-    # logreg.fit(train_bow, train_data.target)
-    # matrix = compute_confusion_matrix(logreg.predict(test_bow),test_data.target)
-    # plt.imshow(matrix, cmap='gray_r')
-    # plt.colorbar()
-    # plt.show()
-    # i,j = find_confusion_class(matrix)
-    # print ("the two most confusion class are :\nclass %s: %s\nclass %s: %s" %(i, train_data.target_names[i], j, train_data.target_names[j]))
+    # Method : MultinomialNB
+    # accuracy, alpha_set = cross_validation_multinomialNB(train_bow, train_data.target)
+    # accuracy = accuracy.tolist()
+    # index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    # print("The best C from cross validation for MultinomialNB is: %d" %(alpha_set[index]))
+    # multinomialNB_model(train_bow, train_data.target, test_bow, test_data.target, alpha_set[index])
+
+    # Method : LogisticRegression
+    # accuracy, C_set = cross_validation_logistic_regression(train_bow, train_data.target)
+    # accuracy = accuracy.tolist()
+    # index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    # print("The best C from cross validation for Logistic Regression is: %d" %(C_set[index]))
+    # logistic_regression_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
+
+    # Method : LinearSVC
+    # accuracy, C_set = cross_validation_svm(train_bow, train_data.target)
+    # accuracy = accuracy.tolist()
+    # index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    # print("The best C from cross validation for SVM is: %d" %(C_set[index]))
+    # svm_linear_model(train_bow, train_data.target, test_bow, test_data.target, C_set[index])
+
+    # Method : Nueral Network
+    accuracy, layer_set = cross_validation_neural_network(train_bow, train_data.target)
+    accuracy = accuracy.tolist()
+    index, value = max(enumerate(accuracy), key=operator.itemgetter(1))
+    print("The best num of layers [50 or 100] from cross validation for neural network is: %d" %(layer_set[index]))
+    neural_network_model(train_bow, train_data.target, test_bow, test_data.target, layer_set[index])
+
+    # clf = LogisticRegression(C=1e7)
+    clf.fit(train_bow, train_data.target)
+    clf = MLPClassifier(hidden_layer_sizes=(layer_set[index],))
+    clf.fit(train_bow, train_target)
+    matrix = compute_confusion_matrix(clf.predict(test_bow),test_data.target)
+    plt.imshow(matrix, cmap='gray_r')
+    plt.colorbar()
+    plt.show()
+    i,j = find_confusion_class(matrix)
+    print ("the two most confusion class are :\nclass %s: %s\nclass %s: %s" %(i+1, train_data.target_names[i], j+1, train_data.target_names[j]))

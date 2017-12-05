@@ -98,7 +98,8 @@ class SVM(object):
         hinge_loss_grads = np.array([np.zeros(X[0].shape) if loss == 0 else np.dot(y[i], X[i])
                                      for i, loss in enumerate(self.hinge_loss(X, y))])
 
-        return   - (self.c / len(X)) * np.sum(np.array([grad for grad in hinge_loss_grads]), axis=0)
+        return  self.w - (self.c / len(X)) * np.sum(np.array([grad for grad in hinge_loss_grads]), axis=0)
+        # return  - (self.c / len(X)) * np.sum(np.array([grad for grad in hinge_loss_grads]), axis=0)
 
     def classify(self, X):
         '''
@@ -180,13 +181,13 @@ def train_svm(beta):
     print("Testing accuracy: %f" %(test_accuracy))
     plt.imshow(np.reshape(svm.w[1:], (-1,28)), cmap='gray')
     plt.colorbar()
-    # plt.show()
+    plt.show()
 
 if __name__ == '__main__':
     plt.plot(optimize_test_function(GDOptimizer(1.0, 0.0)))
     plt.plot(optimize_test_function(GDOptimizer(1.0, 0.9)))
-    plt.legend(['wt_1', 'wt_2'])
-    # plt.show()
+    plt.legend(['beta=0.0', 'beta=0.9'])
+    plt.show()
 
     # Q2.3, apply on 4-vs-9 digits on MNIST
     train_data, train_targets, test_data, test_targets = load_data()
